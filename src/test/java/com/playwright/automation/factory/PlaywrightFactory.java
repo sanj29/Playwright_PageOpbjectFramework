@@ -16,56 +16,42 @@ public class PlaywrightFactory {
 
     public Page initBrowser(Properties prop) {
 
-        String browserName = prop.getProperty("browser", "chromium");
-        boolean headless = Boolean.parseBoolean(
-                System.getProperty("headless", prop.getProperty("headless", "true"))
-        );
+    String browserName = prop.getProperty("browser", "chromium");
+    boolean headless = Boolean.parseBoolean(
+            System.getProperty("headless", prop.getProperty("headless", "true"))
+    );
 
-        System.out.println("Browser name is: " + browserName);
-        System.out.println("Headless mode: " + headless);
+    playwright = Playwright.create();
 
-        playwright = Playwright.create();
+    BrowserType.LaunchOptions options =
+            new BrowserType.LaunchOptions().setHeadless(headless);
 
-        BrowserType.LaunchOptions launchOptions =
-                new BrowserType.LaunchOptions().setHeadless(headless);
-
-        switch (browserName.toLowerCase()) {
-
-            case "chrome":
-                browser = playwright.chromium()
-                        .launch(launchOptions.setChannel("chrome"));
-                break;
-
-            case "chromium":
-                browser = playwright.chromium().launch(launchOptions);
-                break;
-
-            case "firefox":
-                browser = playwright.firefox().launch(launchOptions);
-                break;
-
-            case "safari":
-                browser = playwright.webkit().launch(launchOptions);
-                break;
-
-            default:
-                throw new RuntimeException(
-                        "Unsupported browser: " + browserName
-                );
-        }
-
-        // ✅ CI-safe viewport (NO java.awt)
-        Browser.NewContextOptions contextOptions =
-                new Browser.NewContextOptions()
-                        .setViewportSize(1280, 720);
-
-        browserContext = browser.newContext(contextOptions);
-        page = browserContext.newPage();
-
-        page.navigate(prop.getProperty("url"));
-
-        return page;
+    switch (browserName.toLowerCase()) {
+        case "chrome":
+            browser = playwright.chromium()
+                    .launch(options.setChannel("chrome"));
+            break;
+        case "firefox":
+            browser = playwright.firefox().launch(options);
+            break;
+        case "safari":
+            browser = playwright.webkit().launch(options);
+            break;
+        default:
+            browser = playwright.chromium().launch(options);
     }
+
+    browserContext = browser.newContext(
+            new Browser.NewContextOptions().setViewportSize(1280, 720)
+    );
+
+    Page page = browserContext.newPage();
+    page.navigate(prop.getProperty("url"));
+
+    PlaywrightDriverManager.setPage(page);
+    return page;
+}
+
 
     // Read properties from config file
     public Properties initProp() {
