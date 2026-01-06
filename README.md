@@ -41,17 +41,18 @@ The **Page Object Model (POM)** helps:
 Playwright_PageOpbjectFramework/
 │
 ├── src/
-│   ├── main/java/
-│   │   ├── pages/        # Page Object classes
-│   │   └── utils/        # Utilities & helpers
-│   │
-│   └── test/java/
-│       ├── base/         # BaseTest & setup logic
-│       └── tests/        # Test classes
+│ ├── main/java/
+│ │ ├── pages/ # Page Object classes
+│ │ └── utils/ # Utilities & helpers
+│ │
+│ └── test/java/
+│ ├── base/ # BaseTest & lifecycle setup
+│ ├── factory/ # PlaywrightFactory & ThreadLocal manager
+│ └── tests/ # Test classes
 │
-├── .github/workflows/    # GitHub Actions CI workflow
-├── pom.xml               # Maven configuration
-├── testng.xml            # TestNG suite configuration
+├── .github/workflows/ # GitHub Actions CI workflow
+├── pom.xml # Maven configuration
+├── testng.xml # TestNG parallel execution config
 └── README.md
 ```
 
@@ -107,6 +108,34 @@ mvn test -Dheadless=false
 Headless execution is enabled by default for CI stability.
 
 ---
+
+## 🔀 Parallel Test Execution
+Parallel execution is enabled using TestNG.
+Configuration is defined in testng.xml:
+
+```
+<suite name="Playwright Parallel Suite"
+       parallel="methods"
+       thread-count="3">
+
+    <test name="UI Tests">
+        <packages>
+            <package name="com.playwright.automation.tests"/>
+        </packages>
+    </test>
+</suite>
+```
+Benefits
+✔ Faster execution
+✔ Better CI resource utilization
+✔ Scalable automation runs
+
+## 🧵 Thread-Safe Playwright Design
+This framework uses ThreadLocal to ensure:
+* Each test runs in its own browser context
+* No shared browser or page state
+* Safe and deterministic parallel execution
+This design prevents flaky tests and browser collisions in CI.
 
 ## 🧪 BaseTest Design (CI-Safe)
 
