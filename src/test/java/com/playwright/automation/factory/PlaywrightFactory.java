@@ -2,9 +2,7 @@ package com.playwright.automation.factory;
 
 import com.microsoft.playwright.*;
 
-import java.awt.*;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -15,59 +13,71 @@ public class PlaywrightFactory {
     BrowserContext browserContext;
     Page page;
     Properties prop;
-    public Page  initBrowser(Properties prop){
-        Dimension dim =Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int)dim.getWidth();
-        int height = (int)dim.getHeight();
 
-        String browserName = prop.getProperty("browser");
-        System.out.println("Browser name is :" + browserName);
+    public Page initBrowser(Properties prop) {
+
+        String browserName = prop.getProperty("browser", "chromium");
+        boolean headless = Boolean.parseBoolean(
+                System.getProperty("headless", prop.getProperty("headless", "true"))
+        );
+
+        System.out.println("Browser name is: " + browserName);
+        System.out.println("Headless mode: " + headless);
 
         playwright = Playwright.create();
-        boolean headless =false;
-        if(prop.getProperty("headless").equals("true"))
-            headless =true;
 
-        switch (browserName.toLowerCase()){
+        BrowserType.LaunchOptions launchOptions =
+                new BrowserType.LaunchOptions().setHeadless(headless);
+
+        switch (browserName.toLowerCase()) {
+
             case "chrome":
-              browser=  playwright.chromium().launch(new BrowserType.LaunchOptions().setChannel("chrome").setHeadless(headless));
-              break;
+                browser = playwright.chromium()
+                        .launch(launchOptions.setChannel("chrome"));
+                break;
 
             case "chromium":
-                browser=  playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(headless));
+                browser = playwright.chromium().launch(launchOptions);
                 break;
 
             case "firefox":
-                browser=  playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(headless));
+                browser = playwright.firefox().launch(launchOptions);
                 break;
 
             case "safari":
-                browser=  playwright.webkit().launch(new BrowserType.LaunchOptions().setHeadless(headless));
+                browser = playwright.webkit().launch(launchOptions);
                 break;
 
             default:
-                System.out.println("Please pass the right browser name .....");
-                break;
+                throw new RuntimeException(
+                        "Unsupported browser: " + browserName
+                );
         }
 
-        browserContext = browser.newContext();
+        // ✅ CI-safe viewport (NO java.awt)
+        Browser.NewContextOptions contextOptions =
+                new Browser.NewContextOptions()
+                        .setViewportSize(1280, 720);
+
+        browserContext = browser.newContext(contextOptions);
         page = browserContext.newPage();
-        page.setViewportSize(width,height);
+
         page.navigate(prop.getProperty("url"));
 
         return page;
     }
 
-    // read properties from config file.
-
+    // Read properties from config file
     public Properties initProp() {
 
-        try{
-            FileInputStream fip =  new FileInputStream("./src/test/resources/config/config.properties");
-            prop = new Properties();
+        prop = new Properties();
+        try (FileInputStream fip =
+                     new FileInputStream("./src/test/resources/config/config.properties")) {
+
             prop.load(fip);
-        }catch (IOException e){
-            e.printStackTrace();
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load config.properties", e);
         }
 
         return prop;
