@@ -1,5 +1,7 @@
 package com.playwright.automation.pages;
 
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.Page;
 
 public class AAFTHomePage {
