@@ -47,8 +47,11 @@ public class AAFTHomePage {
         return name;
     }
 
-    public void acceptCookeies() {
-        page.frame("ccbar_iframe").locator(acceptCookeies).click();
-        //page.locator(acceptCookeies).click();
+   public void acceptCookeies() {
+    Locator acceptBtn = page.locator("#accept");
+
+    if (acceptBtn.count() > 0) {
+        acceptBtn.first().click();
     }
+}
 }
