@@ -47,11 +47,15 @@ public class AAFTHomePage {
         return name;
     }
 
-   public void acceptCookeies() {
-    Locator acceptBtn = page.locator("#accept");
-
-    if (acceptBtn.count() > 0) {
-        acceptBtn.first().click();
+    public void acceptCookeies() {
+    try {
+        page.locator("#accept").click(
+            new Locator.ClickOptions().setTimeout(3000)
+        );
+    } catch (PlaywrightException e) {
+        System.out.println("Cookie banner not present, skipping...");
     }
 }
+
+    
 }
